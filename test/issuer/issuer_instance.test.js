@@ -96,6 +96,18 @@ describe('Issuer', () => {
       });
     });
 
+    it('multiple keys can match the JWT header', function () {
+      sinon.stub(LRU.prototype, 'get').returns(undefined);
+      const { kid } = this.keystore.get({ kty: 'RSA' });
+      return this.keystore.generate('RSA', undefined, { kid }).then(() => {
+        nock('https://op.example.com')
+          .get('/certs')
+          .reply(200, this.keystore.toJWKS());
+
+        return this.issuer.key({ alg: 'RS256', kid });
+      });
+    });
+
     describe('HTTP_OPTIONS', () => {
       afterEach(function () {
         delete this.issuer[custom.http_options];
